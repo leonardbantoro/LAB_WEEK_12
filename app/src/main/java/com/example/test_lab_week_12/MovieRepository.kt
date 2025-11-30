@@ -12,12 +12,18 @@ import kotlinx.coroutines.flow.flowOn
 class MovieRepository(private val movieService: MovieService) {
     private val apiKey = "187f6e3f0e53887b6315a8ace14f3382"
     // LiveData that contains a list of movies
-    fun fetchMovies(): Flow<List<Movie>> {
-        return flow {
-// emit the list of popular movies from the API
-            emit(movieService.getPopularMovies(apiKey).results)
-// use Dispatchers.IO to run this coroutine on a shared pool of threads
-        }.flowOn(Dispatchers.IO)
-    }
+    fun fetchMovies(): Flow<List<Movie>> = flow {
+        val sorted = movieService.getPopularMovies(apiKey)
+            .results
+            .sortedByDescending { it.popularity }
+
+        // ===== CEK SORTING DI SINI =====
+        sorted.take(5).forEach {
+            println("SORT CHECK -> ${it.title} | popularity = ${it.popularity}")
+        }
+        // ===============================
+
+        emit(sorted)
+    }.flowOn(Dispatchers.IO)
 
 }
